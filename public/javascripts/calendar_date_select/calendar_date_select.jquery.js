@@ -171,11 +171,12 @@ var _translations = {
 		},
 		initButtonsDiv: function()
 		  {
+			cds = this;
 		    var buttons_div = this.buttons_div;
 		    if (this.options.get("time"))
 		    {
 		      var blank_time = $A(this.options.get("time")=="mixed" ? [[" - ", ""]] : []);
-		      buttons_div.build("span", {innerHTML:"@", className: "at_sign"});
+		      $('<span>').html("@").addClass("at_sign").appendTo(buttons_div);
 		      
 		      var t = new Date();
 		      this.hour_select = new SelectBox(buttons_div,
@@ -200,12 +201,9 @@ var _translations = {
 		    } else if (! this.options.get("buttons")) buttons_div.remove();
 		    
 		    if (this.options.get("buttons")) {
-		      buttons_div.build("span", {innerHTML: "&#160;"});
-		      if (this.options.get("time")=="mixed" || !this.options.get("time")) b = buttons_div.build("a", {
-		          innerHTML: _translations["Today"],
-		          href: "#",
-		          onclick: function() {this.today(false); return false;}.bindAsEventListener(this)
-		        });
+		    	$('<span>').html("&#160;").appendTo(buttons_div);
+		      if (this.options.get("time")=="mixed" || !this.options.get("time"))
+		    	  b = $('<a>').html(_translations["Today"]).attr('href', "#").appendTo(buttons_div).click(function() {cds.today(false); return false;});
 		      
 		      if (this.options.get("time")=="mixed") buttons_div.build("span", {innerHTML: "&#160;|&#160;", className:"button_seperator"})
 		      
@@ -221,8 +219,8 @@ var _translations = {
 		        buttons_div.build("a", { innerHTML: _translations["OK"], href: "#", onclick: function() {this.close(); return false;}.bindAsEventListener(this) });
 		      }
 		      if (this.options.get('clear_button')) {
-		        buttons_div.build("span", {innerHTML: "&#160;|&#160;", className:"button_seperator"})
-		        buttons_div.build("a", { innerHTML: _translations["Clear"], href: "#", onclick: function() {this.clearDate(); if (!this.options.get("embedded")) this.close(); return false;}.bindAsEventListener(this) });
+		    	$("<span>").html("&#160;|&#160;").addClass("button_seperator");
+		    	$("<a>").html(_translations["Clear"]).attr('href', "#").click(function() {cds.clearDate(); if (!cds.options.get("embedded")) cds.close(); return false;})
 		      }
 		    }
 		  },
@@ -404,7 +402,7 @@ var _translations = {
 		  today: function(now) {
 		    var d = new Date(); this.date = new Date();
 		    var o = $H({ day: d.getDate(), month: d.getMonth(), year: d.getFullYear(), hour: d.getHours(), minute: d.getMinutes()});
-		    if ( ! now ) o = o.merge({hour: "", minute:""}); 
+		    if ( ! now ) o = $.extend(o, {hour: "", minute:""}); 
 		    this.updateSelectedDate(o, true);
 		    this.refresh();
 		  },

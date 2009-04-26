@@ -1,4 +1,5 @@
 // Geman Format: 31.12.2000 17:00
+// Always print out full: 09.01.2000
 Date.padded2 = function(hour) { padded2 = hour.toString(); if ((parseInt(hour) < 10) || (parseInt(hour) == null)) padded2="0" + padded2; return padded2; }
 Date.prototype.getAMPMHour = function() { hour=Date.padded2(this.getHours()); return (hour == null) ? 00 : (hour > 24 ? hour - 24 : hour ) }
 Date.prototype.getAMPM = function() { return (this.getHours() < 12) ? "" : ""; }
