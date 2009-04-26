@@ -21,12 +21,13 @@ describe CalendarDateSelect::IncludesHelper do
   
   describe "calendar_date_select_javascripts" do
     it "should return an array of javascripts" do
-      calendar_date_select_javascripts.should == ["calendar_date_select/calendar_date_select"]
+      calendar_date_select_javascripts.first.should =~ %r#calendar_date_select/calendar_date_select\.(jquery|prototype)$#
     end
     
     it "should return the :javascript_include of the specified format, if the specified format expects it" do
       CalendarDateSelect.stub!(:format).and_return(CalendarDateSelect::FORMATS[:hyphen_ampm])
-      calendar_date_select_javascripts.should == ["calendar_date_select/calendar_date_select", "calendar_date_select/format_hyphen_ampm"]
+      calendar_date_select_javascripts.first.should =~ %r#calendar_date_select/calendar_date_select\.(jquery|prototype)$#
+      calendar_date_select_javascripts.last.should == "calendar_date_select/format_hyphen_ampm"
     end
     
     it "should blow up if an illegitimate argument is passed" do
@@ -36,7 +37,7 @@ describe CalendarDateSelect::IncludesHelper do
   
   describe "calendar_date_select_stylesheets" do
     it "should return an array of stylesheet" do
-      calendar_date_select_javascripts.should == ["calendar_date_select/calendar_date_select"]
+      calendar_date_select_stylesheets.should == "calendar_date_select/default"
     end
     
     it "should blow up if an illegitimate argument is passed" do

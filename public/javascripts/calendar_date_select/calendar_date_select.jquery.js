@@ -1,5 +1,7 @@
 // CalendarDateSelect version 1.15 - a prototype based date picker BUT USING JQUERY
 // Questions, comments, bugs? - see the project page: http://code.google.com/p/calendardateselect
+if (typeof Prototype == 'undefined') alert("CalendarDateSelect Error: Prototype could not be found. Please make sure that your application's layout includes prototype.js (.g. <%= javascript_include_tag :defaults %>) *before* it includes calendar_date_select.js (.g. <%= calendar_date_select_includes %>).");
+if (Prototype.Version < "1.6") alert("Prototype 1.6.0 is required.  If using earlier version of prototype, please use calendar_date_select version 1.8.3");
 
 function $w(string) { return string.split(' '); }
 var _translations = {
@@ -12,10 +14,12 @@ var _translations = {
 (function($) {
 	nil = null;
 	function $R(f,t) { a = []; for (i=f; i<=t; i++) { a.push(i); }; 
-	a.start = this[0]; a.end = this[this.length-1];
-	a.include = function(needle) { return $.inArray(needle, this) != -1; }
-	return a;
+		a.start = this[0]; a.end = this[this.length-1];
+		a.include = function(needle) { return $.inArray(needle, this) != -1; }
+		a.select = function(x) { return $.grep(this, x) };
+		return a;
 	}
+	function $A(a) { return a; }
 	function $H(obj) { obj.get = function(key) { return this[key] }; return obj; }
 	
 	Date.one_day = 24*60*60*1000;
@@ -71,13 +75,12 @@ var _translations = {
 		this.initCalendarDiv();
 		    if(!this.options.get("embedded")) {
 		    	this.positionCalendarDiv()
+		    		    // set the click handler to check if a user has clicked away from the document
+		    cds = this;
+		    $(document).bind('mousedown.calendar_date_select', function(e) {
+			    if ( $(e.target).parents('.calendar_date_select').length == 0 ) cds.close(); 
+		    	}).bind('keypress.calendar_date_select', function(e) { if (e.keyCode==Event.KEY_ESC) cds.close(); } );
 		    }
-
-	    // set the click handler to check if a user has clicked away from the document
-	    cds = this;
-	    $(document).bind('mousedown.calendar_date_select', function(e) {
-		    if ( $(e.target).parents('.calendar_date_select').length == 0 ) cds.close(); 
-		    }).bind('keypress.calendar_date_select', function(e) { if (e.keyCode==Event.KEY_ESC) cds.close(); } );
 	    this.callback("after_show")
 	};
 	
@@ -100,7 +103,7 @@ var _translations = {
 	    
 		this.calendar_div.css({left: left_px, top: top_px, visibility: ""});
 	    
-//	    // draw an iframe behind the calendar -- ugly hack to make IE 6 happy     TODO:
+	    // draw an iframe behind the calendar -- ugly hack to make IE 6 happy     TODO:
 //	    if(navigator.appName=="Microsoft Internet Explorer") this.iframe = $(document.body).build("iframe", {src: "javascript:false", className: "ie6_blocker"}, { left: left_px, top: top_px, height: c_height.toString()+"px", width: c_width.toString()+"px", border: "0px"})
 	  },
 		initCalendarDiv: function() {
@@ -171,56 +174,41 @@ var _translations = {
 		},
 		initButtonsDiv: function()
 		  {
-			cds = this;
+			var that = this;
 		    var buttons_div = this.buttons_div;
 		    if (this.options.get("time"))
 		    {
-		      var blank_time = $A(this.options.get("time")=="mixed" ? [[" - ", ""]] : []);
+		      var blank_time = $A(this.options.get("time")=="mixed" ? [" - ", ""] : false);
 		      $('<span>').html("@").addClass("at_sign").appendTo(buttons_div);
 		      
 		      var t = new Date();
-		      this.hour_select = new SelectBox(buttons_div,
-		        blank_time.concat($R(0,23).map(function(x) {t.setHours(x); return $A([t.getAMPMHour()+ " " + t.getAMPM(),x])} )),
-		        { 
-		          calendar_date_select: this, 
-		          onchange: function() { this.calendar_date_select.updateSelectedDate( { hour: this.value });},
-		          className: "hour" 
-		        }
-		      );
-		      buttons_div.build("span", {innerHTML:":", className: "seperator"});
-		      var that = this;
-		      this.minute_select = new SelectBox(buttons_div,
-		        blank_time.concat($R(0,59).select(function(x){return (x % that.options.get('minute_interval')==0)}).map(function(x){ return $A([ Date.padded2(x), x]); } ) ),
-		        { 
-		          calendar_date_select: this, 
-		          onchange: function() { this.calendar_date_select.updateSelectedDate( {minute: this.value }) }, 
-		          className: "minute" 
-		        }
-		      );
-		      
+		      this.hour_select = $('<select>').appendTo(buttons_div).addClass("hour").change(function(){ that.updateSelectedDate( { hour: $(this).val() }); });
+		      if (blank_time) $('<option>').val(blank_time[1]).html(blank_time[0]).appendTo(this.hour_select);
+		      $.each( $R(0,23), function(x) {t.setHours(x); $('<option>').val(''+x).html(''+t.getAMPMHour()+ " " + t.getAMPM()).appendTo(cds.hour_select) } );
+		      $("<span>").html(":").addClass("seperator").appendTo(buttons_div);
+		      this.minute_select = $('<select>').appendTo(buttons_div).addClass("minute").change(function(){ that.updateSelectedDate( { minute: $(this).val() }); });
+		      if (blank_time) $('<option>').val(blank_time[1]).html(blank_time[0]).appendTo(this.minute_select);
+		      $.each( $R(0,59).select(function(x){return (x % that.options.get('minute_interval')==0)}).map(function(x){ return $A([ Date.padded2(x), x]); }),
+	    		  	function() { $('<option>').val(this[1]).html(this[0]).appendTo(cds.minute_select) } );
 		    } else if (! this.options.get("buttons")) buttons_div.remove();
 		    
 		    if (this.options.get("buttons")) {
 		    	$('<span>').html("&#160;").appendTo(buttons_div);
 		      if (this.options.get("time")=="mixed" || !this.options.get("time"))
-		    	  b = $('<a>').html(_translations["Today"]).attr('href', "#").appendTo(buttons_div).click(function() {cds.today(false); return false;});
+		    	  b = $('<a>').html(_translations["Today"]).attr('href', "#").appendTo(buttons_div).click(function() {that.today(false); return false;});
 		      
-		      if (this.options.get("time")=="mixed") buttons_div.build("span", {innerHTML: "&#160;|&#160;", className:"button_seperator"})
+		      if (this.options.get("time")=="mixed") $("<span>").html("&#160;|&#160;").addClass("button_seperator").appendTo(buttons_div); 
 		      
-		      if (this.options.get("time")) b = buttons_div.build("a", {
-		        innerHTML: _translations["Now"],
-		        href: "#",
-		        onclick: function() {this.today(true); return false}.bindAsEventListener(this)
-		      });
+		      if (this.options.get("time")) b = $("<a>").html(_translations["Now"]).attr('href', "#").click(function(){ that.today(true); return false}).appendTo(buttons_div); 
 		      
 		      if (!this.options.get("embedded") && !this.closeOnClick())
 		      {
-		        buttons_div.build("span", {innerHTML: "&#160;|&#160;", className:"button_seperator"})
-		        buttons_div.build("a", { innerHTML: _translations["OK"], href: "#", onclick: function() {this.close(); return false;}.bindAsEventListener(this) });
+		    	$("<span>").html("&#160;|&#160;").addClass("button_seperator");
+		    	$("<a>").html(_translations["OK"]).html("#").addClass("button_seperator").click(function() {that.close(); return false;});
 		      }
 		      if (this.options.get('clear_button')) {
 		    	$("<span>").html("&#160;|&#160;").addClass("button_seperator");
-		    	$("<a>").html(_translations["Clear"]).attr('href', "#").click(function() {cds.clearDate(); if (!cds.options.get("embedded")) cds.close(); return false;})
+		    	$("<a>").html(_translations["Clear"]).attr('href', "#").click(function() {that.clearDate(); if (!that.options.get("embedded")) that.close(); return false;})
 		      }
 		    }
 		  },
@@ -421,5 +409,3 @@ var _translations = {
 	
 	$.extend(CalendarDateSelect.prototype, CalendarDateSelect.instanceMethods);
 }(jQuery))
-
-//$(function(){new CalendarDateSelect( $('#query_localized_end_on'), {buttons:false, embedded:true, year_range:[2009, 2011]} );})
