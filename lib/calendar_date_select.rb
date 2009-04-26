@@ -20,14 +20,26 @@ if Object.const_defined?(:Rails) && File.directory?(Rails.root.to_s + "/public")
       class << self; alias new_with_backwards_compatibility new; end
     end
   end
-
+  
   # install files
-  unless File.exists?(RAILS_ROOT + '/public/javascripts/calendar_date_select/calendar_date_select.js')
+  cds_files = Dir.glob(RAILS_ROOT + '/public/javascripts/calendar_date_select/calendar_date_select.*js')
+  if cds_files.any?
+    CalendarDateSelect.lib = cds_files.first[/calendar_date_select\.([^\/]*)\.js/, 1]
+  else
+    jrails_dir = Dir[File.join(RAILS_ROOT, %w[vendor plugins jrails])].first
+    CalendarDateSelect.lib = 'jquery' if jrails_dir
+    
     ['/public', '/public/javascripts/calendar_date_select', '/public/stylesheets/calendar_date_select', '/public/images/calendar_date_select', '/public/javascripts/calendar_date_select/locale'].each do |dir|
       source = File.dirname(__FILE__) + "/../#{dir}"
       dest = RAILS_ROOT + dir
       FileUtils.mkdir_p(dest)
-      FileUtils.cp(Dir.glob(source+'/*.*'), dest)
+      files = Dir.glob(source+'/*.*')
+      if dir == '/public/javascripts/calendar_date_select'
+        files = files.reject{|f| f =~ /calendar_date_select[^\/]*js/} # all but calendar_date_select<sthg>js
+        p cds_file = File.join(source, "calendar_date_select.#{CalendarDateSelect.lib}.js")
+        files << cds_file
+      end 
+      FileUtils.cp(files, dest)
     end
   end
 end
