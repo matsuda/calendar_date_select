@@ -32,7 +32,3 @@ Date.parseFormattedString = function (string) {
   if (d[10]) { date.setSeconds(d[10]); }
   return date;
 }
-
-Date.first_day_of_week = 1
-Date.weekdays = $w("Mo Di Mi Do Fr Sa So");
-Date.months = $w("Januar Februar M&auml;rz April Mai Juni Juli August September Oktober November Dezember" );
