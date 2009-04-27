@@ -23,7 +23,10 @@ module CalendarDateSelect::IncludesHelper
     options.assert_valid_keys(:style, :locale)
     options[:style] ||= args.shift
     
-    javascript_include_tag(*calendar_date_select_javascripts(:locale => options[:locale])) + "\n" +
-    stylesheet_link_tag(*calendar_date_select_stylesheets(:style => options[:style])) + "\n"
+    html = javascript_include_tag(*calendar_date_select_javascripts(:locale => options[:locale])) + "\n"
+    unless options[:style] === false 
+      html += stylesheet_link_tag(*calendar_date_select_stylesheets(:style => options[:style])) + "\n"
+    end
+    html
   end
 end
