@@ -192,6 +192,7 @@ var _translations = {
 		    } else if (! this.options.get("buttons")) buttons_div.remove();
 		    
 		    if (this.options.get("buttons")) {
+		    	$('<br>').appendTo(buttons_div);
 		    	$('<span>').html("&#160;").appendTo(buttons_div);
 		      if (this.options.get("time")=="mixed" || !this.options.get("time"))
 		    	  b = $('<a>').html(_translations["Today"]).attr('href', "#").appendTo(buttons_div).click(function() {that.today(false); return false;});
