@@ -202,12 +202,12 @@ var _translations = {
 		      
 		      if (!this.options.get("embedded") && !this.closeOnClick())
 		      {
-		    	$("<span>").html("&#160;|&#160;").addClass("button_seperator");
-		    	$("<a>").html(_translations["OK"]).html("#").addClass("button_seperator").click(function() {that.close(); return false;});
+		    	$("<span>").html("&#160;|&#160;").addClass("button_seperator").appendTo(buttons_div);
+		    	$("<a>").html(_translations["OK"]).attr('href', "#").click(function() {that.close(); return false;}).appendTo(buttons_div);
 		      }
 		      if (this.options.get('clear_button')) {
-		    	$("<span>").html("&#160;|&#160;").addClass("button_seperator");
-		    	$("<a>").html(_translations["Clear"]).attr('href', "#").click(function() {that.clearDate(); if (!that.options.get("embedded")) that.close(); return false;})
+		    	$("<span>").html("&#160;|&#160;").addClass("button_seperator").appendTo(buttons_div);
+		    	$("<a>").html(_translations["Clear"]).attr('href', "#").click(function() {that.clearDate(); if (!that.options.get("embedded")) that.close(); return false;}).appendTo(buttons_div);
 		      }
 		    }
 		  },
@@ -258,7 +258,8 @@ var _translations = {
 		    {
 		      this.month_select.val(m);
 		      
-		      var e = this.year_select.element; 
+		      // var e = this.year_select.element;
+		      var e = this.year_select[0];
 		      if (this.flexibleYearRange() && (!(this.year_select.val(y)) || e.selectedIndex <= 1 || e.selectedIndex >= e.options.length - 2 )) this.populateYearRange();
 		      
 		      this.year_select.val(y);
